@@ -1,0 +1,19 @@
+# Roster Builder - Python 3.11+ (tested on 3.14).  Install with:
+#   pip install -r roster_builder/packaging/requirements.txt
+#
+# --- the app ---
+openpyxl>=3.1
+# 9.15 is the first release with a Windows cp314 wheel
+ortools>=9.15
+reportlab>=4.0
+# Arabic text in the PDF export (letter shaping + right-to-left order)
+arabic-reshaper>=3.0
+python-bidi>=0.5
+# PySide6 6.10.1 is the first release with Python 3.14 wheels (cp310-abi3 = one wheel for every Python >= 3.10).
+# The "Essentials" package has everything this app uses (Core, Gui, Widgets, PrintSupport) and is ~160 MB smaller
+# than the full "PySide6" package (which adds WebEngine, Qt3D, Multimedia ... that are not used).
+PySide6-Essentials>=6.10.1
+
+# --- building the .exe (build_exe.bat installs this too) ---
+pyinstaller>=6.22
+

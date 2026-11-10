@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+# build output (made by roster_builder/packaging/build_exe.bat)
+build/
+dist/
+# logs
+*.log

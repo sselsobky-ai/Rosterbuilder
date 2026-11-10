@@ -1,0 +1,70 @@
+# Builds the Windows program and the installer RosterBuilder_Setup_<version>.exe on GitHub's Windows machines.
+# - Every push to main and every manual run: the installer is attached to the run as an artifact
+#   (Actions tab -> the run -> "Artifacts" -> RosterBuilder-Setup).
+# - Pushing a tag like v1.0.0: the installer is also published as a GitHub Release (Releases page).
+name: Build Windows installer
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install requirements
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r roster_builder/packaging/requirements.txt pyinstaller
+
+      - name: Read version
+        id: ver
+        shell: pwsh
+        run: |
+          $v = python -c "import re;print(re.search(r'__version__\s*=\s*.(\d[\w.]*)',open('roster_builder/runtime.py',encoding='utf-8').read()).group(1))"
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Build the program (PyInstaller)
+        run: python -m PyInstaller roster_builder/packaging/RosterBuilder.spec --noconfirm --clean
+
+      - name: Smoke test the program
+        timeout-minutes: 5
+        shell: pwsh
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          $p = Start-Process -FilePath "dist\RosterBuilder\RosterBuilder.exe" -ArgumentList "--smoke-test" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "smoke test failed with exit code $($p.ExitCode)" }
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+
+      - name: Build the installer (Inno Setup)
+        shell: pwsh
+        run: |
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=${{ steps.ver.outputs.version }}" roster_builder\packaging\RosterBuilder.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed" }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RosterBuilder-Setup-${{ steps.ver.outputs.version }}
+          path: dist/installer/*.exe
+
+      - name: Publish release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/installer/*.exe
