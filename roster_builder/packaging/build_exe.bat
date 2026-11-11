@@ -66,21 +66,7 @@ echo Version: %APPVER%
 REM ---- Inno Setup 6 (ISCC.exe)
 set "STAGE=find Inno Setup"
 >> "%BLOG%" echo program built OK, version %APPVER%
-call :pickpython
-set "PYSEL="
-for %%V in (3.14 3.13 3.12 3.11) do (
-    if not defined PYSEL (
-        py -%%V -c "import sys" >nul 2>&1
-        if not errorlevel 1 set "PYSEL=py -%%V"
-    )
-)
-if not defined PYSEL (
-    python -c "import sys; sys.exit(0 if (3,11) <= sys.version_info[:2] <= (3,14) else 1)" >nul 2>&1
-    if not errorlevel 1 set "PYSEL=python"
-)
-exit /b 0
-
-:findiscc
+call :findiscc
 if defined ISCC goto :haveiscc
 echo.
 echo Inno Setup 6 was not found. Trying to install it with winget ...
@@ -123,6 +109,20 @@ echo    %CD%\dist\RosterBuilder\RosterBuilder.exe
 echo  Quick check:  dist\RosterBuilder\RosterBuilder.exe --smoke-test   (then: echo %%errorlevel%%  - 0 means fine)
 echo ============================================================
 pause
+exit /b 0
+
+:pickpython
+set "PYSEL="
+for %%V in (3.14 3.13 3.12 3.11) do (
+    if not defined PYSEL (
+        py -%%V -c "import sys" >nul 2>&1
+        if not errorlevel 1 set "PYSEL=py -%%V"
+    )
+)
+if not defined PYSEL (
+    python -c "import sys; sys.exit(0 if (3,11) <= sys.version_info[:2] <= (3,14) else 1)" >nul 2>&1
+    if not errorlevel 1 set "PYSEL=python"
+)
 exit /b 0
 
 :findiscc
