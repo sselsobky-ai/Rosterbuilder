@@ -26,7 +26,7 @@ The app is **bilingual (English / العربية)**, with a full right-to-left A
 ## Repository layout
 
 ```
-roster_builder/            the app (Python 3.11+, PySide6, OR-Tools CP-SAT)
+roster_builder/            the app (Python 3.11–3.14, PySide6, OR-Tools CP-SAT)
   ui/                      the screens
   packaging/               build_exe.bat, RosterBuilder.spec (PyInstaller), RosterBuilder.iss (Inno Setup),
                            requirements.txt, user guides, icon, run_debug.bat, cleanup_project.bat

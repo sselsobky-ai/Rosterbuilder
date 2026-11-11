@@ -1,14 +1,45 @@
 @echo off
 REM Builds dist\RosterBuilder\RosterBuilder.exe and the installer dist\installer\RosterBuilder_Setup_<version>.exe
-REM (Windows; Python 3.11+, tested with 3.14 from python.org).
+REM (Windows; needs Python 3.11 - 3.14, tested with 3.14 from python.org. Python 3.15 is not supported yet.)
 REM Double-click it, or run it from any folder. The window stays open at the end so you can read the result.
 setlocal EnableDelayedExpansion
 cd /d "%~dp0..\.."
 echo Project folder: %CD%
 
+REM ---- Python: the solver library (ortools) supports Python 3.11 - 3.14 only (NOT 3.15 yet).
+REM An existing .venv made with another Python version is rebuilt.
+if exist .venv\Scripts\python.exe (
+    .venv\Scripts\python.exe -c "import sys; sys.exit(0 if (3,11) <= sys.version_info[:2] <= (3,14) else 1)" >nul 2>&1
+    if errorlevel 1 (
+        echo The existing .venv uses an unsupported Python version - rebuilding it ...
+        rmdir /s /q .venv
+    )
+)
 if not exist .venv\Scripts\python.exe (
-    echo Creating the virtual environment .venv ...
-    py -3 -m venv .venv || goto :fail
+    call :pickpython
+    if not defined PYSEL (
+        echo.
+        echo No supported Python found. Trying to install Python 3.14 with winget ...
+        winget install --id Python.Python.3.14 -e --silent --accept-package-agreements --accept-source-agreements
+        call :pickpython
+    )
+    if not defined PYSEL (
+        echo.
+        echo ============================================================
+        echo  A supported Python was NOT found on this computer.
+        echo  This program needs Python 3.11, 3.12, 3.13 or 3.14 to be BUILT
+        echo  ^(Python 3.15 does not work yet: the solver library has no 3.15 version^).
+        echo  1. Install Python 3.14 from  https://www.python.org/downloads/
+        echo     ^(it can be installed next to another Python version^)
+        echo  2. Run this file again.
+        echo  Note: a computer that only USES the program does not need Python at all -
+        echo  just run RosterBuilder_Setup_x.y.z.exe made on the build computer.
+        echo ============================================================
+        pause
+        exit /b 1
+    )
+    echo Creating the virtual environment .venv with: !PYSEL!
+    !PYSEL! -m venv .venv || goto :fail
 )
 call .venv\Scripts\activate.bat || goto :fail
 python --version
@@ -25,7 +56,21 @@ if "%APPVER%"=="" set "APPVER=1.0.0"
 echo Version: %APPVER%
 
 REM ---- Inno Setup 6 (ISCC.exe)
-call :findiscc
+call :pickpython
+set "PYSEL="
+for %%V in (3.14 3.13 3.12 3.11) do (
+    if not defined PYSEL (
+        py -%%V -c "import sys" >nul 2>&1
+        if not errorlevel 1 set "PYSEL=py -%%V"
+    )
+)
+if not defined PYSEL (
+    python -c "import sys; sys.exit(0 if (3,11) <= sys.version_info[:2] <= (3,14) else 1)" >nul 2>&1
+    if not errorlevel 1 set "PYSEL=python"
+)
+exit /b 0
+
+:findiscc
 if defined ISCC goto :haveiscc
 echo.
 echo Inno Setup 6 was not found. Trying to install it with winget ...

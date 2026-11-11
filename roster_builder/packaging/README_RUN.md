@@ -2,7 +2,7 @@
 
 You need a Windows PC with internet (first build only) and the project folder (the folder that contains `roster_builder\`).
 
-1. Install **Python 3.14** from https://www.python.org (tick **Add python.exe to PATH**). Python 3.11 or newer also works.
+1. Install **Python 3.14** from https://www.python.org (tick **Add python.exe to PATH**). Python 3.11–3.13 also work; **Python 3.15 does not work yet**.
 2. Open the project folder and double-click **`roster_builder\packaging\build_exe.bat`**. Leave the window open.
    * First run: about 10 minutes and about 400 MB of downloads. Later runs are faster.
    * The script builds the program, then looks for **Inno Setup 6**. If it is missing, it installs it with winget. If winget is not available it tells you to download Inno Setup from https://jrsoftware.org/isdl.php (Inno Setup 6; recent versions also add the Arabic setup language) – install it and run the script again.

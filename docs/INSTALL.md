@@ -14,7 +14,7 @@ Choose one way:
   - Or open **Actions → Build Windows installer**, click the newest green run, and download the **RosterBuilder-Setup-…** artifact under *Artifacts*. It's a .zip; unzip it to get the setup file.
   - The installer is built automatically on GitHub's Windows machines on every update.
 - **B. Build it on your own Windows PC**
-  1. Install **Python 3.11 or newer** from python.org (3.14 is tested). Tick **Add python.exe to PATH**.
+  1. Install **Python 3.14** from python.org (3.11–3.14 work; **3.15 does not work yet**, because the solver library has no 3.15 version). Tick **Add python.exe to PATH**.
   2. Download this repository: **Code → Download ZIP**, then unzip it. Or use `git clone`.
   3. Double-click `roster_builder\packaging\build_exe.bat` and keep the window open. The first run takes about 10 minutes and downloads about 400 MB.
      - The script builds the program, then installs **Inno Setup 6** with winget if it's missing.
@@ -24,6 +24,8 @@ Choose one way:
      - The program folder `dist\RosterBuilder\` also runs without installing. Copy the *whole* folder.
 
 ### 2. Install on a computer
+
+> A computer that only **uses** the app needs **no Python and no source code**: just the one setup file. Python is only needed on the PC that *builds* the setup file.
 
 1. Double-click `RosterBuilder_Setup_<version>.exe`.
    - It installs **for the current user only**, so no administrator rights are needed.
@@ -54,6 +56,8 @@ Use **Settings → Apps → Roster Builder → Uninstall**, or the uninstall ent
 
 ### 6. Troubleshooting
 
+- **`No module named 'PySide6'` / `'openpyxl'`, or the build fails while installing `ortools`:** the PC has an unsupported Python (for example 3.15). Install Python 3.14 next to it and run `build_exe.bat` again; it picks the supported version by itself and rebuilds `.venv`.
+
 - **Error log:** if the app can't start, it shows a message and writes `RosterBuilder_error.log` to `%APPDATA%\RosterBuilder`. **Help → About** shows the exact location.
 - **Diagnostic launch from the source folder:** `roster_builder\packaging\run_debug.bat` starts the app with a console and writes `run_debug.log`.
 - **Quick check of a build:** in `dist\RosterBuilder`, run `RosterBuilder.exe --smoke-test`, then `echo %errorlevel%`. 0 means it's fine.
@@ -71,7 +75,7 @@ Use **Settings → Apps → Roster Builder → Uninstall**, or the uninstall ent
   - من صفحة **Releases** نزّل `RosterBuilder_Setup_<الإصدار>.exe`.
   - أو افتح **Actions ← Build Windows installer**، واختر أحدث تشغيل ناجح (أخضر)، ثم نزّل الملف من قسم *Artifacts*. ستحصل على ملف مضغوط، فكّه لتحصل على ملف التثبيت.
 - **ب. البناء على حاسوبك (ويندوز)**
-  1. ثبّت **Python 3.11 أو أحدث** من python.org، وحدّد **Add python.exe to PATH**.
+  1. ثبّت **Python 3.14** من python.org (تعمل الإصدارات 3.11 إلى 3.14، و**لا يعمل 3.15 حاليًا**)، وحدّد **Add python.exe to PATH**.
   2. نزّل المستودع (**Code ← Download ZIP**) وفكّ الضغط.
   3. انقر نقرًا مزدوجًا على `roster_builder\packaging\build_exe.bat` واترك النافذة مفتوحة.
      - تستغرق المرة الأولى نحو 10 دقائق، وتنزّل نحو 400 ميغابايت.
