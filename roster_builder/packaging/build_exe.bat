@@ -5,6 +5,9 @@ REM Double-click it, or run it from any folder. The window stays open at the end
 setlocal EnableDelayedExpansion
 cd /d "%~dp0..\.."
 echo Project folder: %CD%
+set "BLOG=roster_builder\packaging\build_log.txt"
+set "STAGE=start"
+> "%BLOG%" echo ==== %date% %time%  build_exe.bat
 
 REM ---- Python: the solver library (ortools) supports Python 3.11 - 3.14 only (NOT 3.15 yet).
 REM An existing .venv made with another Python version is rebuilt.
@@ -41,10 +44,15 @@ if not exist .venv\Scripts\python.exe (
     echo Creating the virtual environment .venv with: !PYSEL!
     !PYSEL! -m venv .venv || goto :fail
 )
+set "STAGE=activate .venv"
 call .venv\Scripts\activate.bat || goto :fail
 python --version
+python --version >> "%BLOG%" 2>&1
+set "STAGE=pip upgrade"
 python -m pip install --upgrade pip || goto :fail
+set "STAGE=pip install requirements"
 python -m pip install -r roster_builder\packaging\requirements.txt pyinstaller || goto :fail
+set "STAGE=PyInstaller"
 python -m PyInstaller roster_builder\packaging\RosterBuilder.spec --noconfirm --clean || goto :fail
 
 if not exist dist\RosterBuilder\RosterBuilder.exe goto :fail
@@ -56,6 +64,8 @@ if "%APPVER%"=="" set "APPVER=1.0.0"
 echo Version: %APPVER%
 
 REM ---- Inno Setup 6 (ISCC.exe)
+set "STAGE=find Inno Setup"
+>> "%BLOG%" echo program built OK, version %APPVER%
 call :pickpython
 set "PYSEL="
 for %%V in (3.14 3.13 3.12 3.11) do (
@@ -79,6 +89,7 @@ call :findiscc
 if defined ISCC goto :haveiscc
 echo.
 echo ============================================================
+>> "%BLOG%" echo Inno Setup 6 not found and winget could not install it
 echo  The program is built, but the installer could NOT be made:
 echo  Inno Setup 6 is not installed and winget could not install it.
 echo  1. Download and install Inno Setup 6 from  https://jrsoftware.org/isdl.php
@@ -92,16 +103,24 @@ exit /b 1
 
 :haveiscc
 echo Using %ISCC%
-"%ISCC%" /DAppVersion=%APPVER% roster_builder\packaging\RosterBuilder.iss || goto :fail
+>> "%BLOG%" echo Using %ISCC%
+set "STAGE=Inno Setup compile (see the ISCC messages in build_log.txt)"
+"%ISCC%" /DAppVersion=%APPVER% roster_builder\packaging\RosterBuilder.iss >> "%BLOG%" 2>&1
+if errorlevel 1 (
+    type "%BLOG%"
+    goto :fail
+)
+set "STAGE=installer file missing after compile"
 if not exist "dist\installer\RosterBuilder_Setup_%APPVER%.exe" goto :fail
 echo.
 echo ============================================================
+>> "%BLOG%" echo DONE
 echo  Done.
 echo  Installer (give this ONE file to the manager):
 echo    %CD%\dist\installer\RosterBuilder_Setup_%APPVER%.exe
 echo  Program folder (works without installing):
 echo    %CD%\dist\RosterBuilder\RosterBuilder.exe
-echo  Quick check:  dist\RosterBuilder\RosterBuilder.exe --smoke-test   (then: echo %%errorlevel%%  -> 0 = fine)
+echo  Quick check:  dist\RosterBuilder\RosterBuilder.exe --smoke-test   (then: echo %%errorlevel%%  - 0 means fine)
 echo ============================================================
 pause
 exit /b 0
@@ -114,9 +133,11 @@ if not defined ISCC if exist "%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe" set
 exit /b 0
 
 :fail
+>> "%BLOG%" echo BUILD FAILED at stage: %STAGE%
 echo.
 echo ============================================================
-echo  BUILD FAILED. Scroll up to read the first error message.
+echo  BUILD FAILED at stage: %STAGE%
+echo  Scroll up to read the first error message. Details: %BLOG%
 echo ============================================================
 pause
 exit /b 1

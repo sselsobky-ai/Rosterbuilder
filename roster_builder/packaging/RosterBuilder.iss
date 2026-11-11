@@ -27,7 +27,11 @@ DefaultDirName={localappdata}\Programs\RosterBuilder
 DefaultGroupName=Roster Builder
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
+#if Ver >= EncodeVer(6,3,0)
 ArchitecturesInstallIn64BitMode=x64compatible
+#else
+ArchitecturesInstallIn64BitMode=x64
+#endif
 SetupIconFile=app.ico
 UninstallDisplayIcon={app}\{#AppExe}
 UninstallDisplayName=Roster Builder

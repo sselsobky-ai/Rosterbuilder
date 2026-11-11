@@ -8,3 +8,4 @@ build/
 dist/
 # logs
 *.log
+build_log.txt
